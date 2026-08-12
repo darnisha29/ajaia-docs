@@ -26,7 +26,9 @@ const ToolbarButton = ({
     aria-pressed={active}
     title={label}
     className={cn(
-      "flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors",
+      // shrink-0: the toolbar scrolls horizontally on narrow screens, and
+      // without this the buttons squash instead of overflowing.
+      "flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors",
       "hover:bg-muted hover:text-foreground",
       "disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent",
       active && "bg-primary-soft text-primary hover:bg-primary-soft",

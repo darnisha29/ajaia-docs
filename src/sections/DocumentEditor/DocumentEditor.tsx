@@ -120,7 +120,11 @@ const DocumentEditor = ({ user, document: doc }: DocumentEditorProps) => {
             />
           </div>
 
-          <div className="hidden shrink-0 sm:block">
+          {/* Always rendered, including on mobile: autosave with no visible
+              confirmation is the one place a user can't tell whether their work
+              survived. SaveStatus drops its label on narrow screens and shows
+              just the icon. */}
+          <div className="shrink-0">
             <SaveStatus
               status={status}
               readOnly={!canEdit}
@@ -128,7 +132,12 @@ const DocumentEditor = ({ user, document: doc }: DocumentEditorProps) => {
           </div>
 
           {doc.role !== "owner" ? (
-            <Badge variant="primary">Shared by {doc.owner.name}</Badge>
+            <Badge
+              variant="primary"
+              className="hidden shrink-0 md:inline-flex"
+            >
+              Shared by {doc.owner.name}
+            </Badge>
           ) : null}
 
           {doc.canManageSharing ? (

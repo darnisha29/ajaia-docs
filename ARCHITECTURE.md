@@ -102,6 +102,23 @@ so it can be retried, and warns on `beforeunload` if a write is still outstandin
 before `&lt;` turns the literal text `&amp;lt;` into `<` — reintroducing markup into "plain" text.
 `&amp;` is decoded last. There's a test for it.
 
+**Library defaults encode someone else's product decision.** Two of them were wrong here, and both
+were only visible by running real input through the real thing:
+
+- _Mammoth ignores underline on `.docx` import._ A sound default in general — Word documents
+  underline plenty of things that aren't emphasis — and the wrong one for an editor whose toolbar has
+  an underline button. Fixed with an explicit style map; a real Word file is committed as a test
+  fixture so it can't regress.
+- _Tiptap's `autolink` turns any TLD-shaped token into a link as you type._ "check.Live" became a
+  hyperlink. Fine in a chat app where you can undo it; not fine here, because this build ships no
+  unlink control, making the transformation one-way. Disabled — links still arrive via import and
+  paste, which is where they actually come from. The alternative (build link/unlink UI) was more
+  scope than the feature was worth today.
+
+**The toolbar scrolls rather than wraps.** At phone widths the full button set doesn't fit; wrapping
+made the sticky bar two rows tall and orphaned redo. Horizontal overflow keeps it one row at every
+width, which is what mobile editors do.
+
 ---
 
 ## Deliberately deprioritized
@@ -123,7 +140,10 @@ before `&lt;` turns the literal text `&amp;lt;` into `<` — reintroducing marku
 - **Concurrent edits last-write-win.** Two editors in the same document at the same time will
   overwrite each other; there is no locking, no merge, and no "someone else is editing" warning.
 - **Import is one-way.** A `.docx` becomes HTML; there's no export back out.
-- **`.docx` fidelity is mammoth's.** Semantic formatting (headings, lists, bold/italic, links) comes
-  through; images, tables, and complex layout do not.
+- **`.docx` fidelity is mammoth's.** Verified against a real Word file: headings (H1–H3),
+  bold/italic/underline, bulleted and numbered lists, blockquotes, and links all come through.
+  Images, tables, columns, and complex layout do not.
+- **No link/unlink control in the editor.** Links survive import and paste, but can't be created or
+  removed by hand. This is also why autolink is off — see above.
 - **The user directory is fully visible** to any signed-in user, which is fine for three seeded demo
   accounts and would not be for real tenants.

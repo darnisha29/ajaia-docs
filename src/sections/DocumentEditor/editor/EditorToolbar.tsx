@@ -34,7 +34,12 @@ const EditorToolbar = ({ editor, disabled }: EditorToolbarProps) => {
     <div
       role="toolbar"
       aria-label="Formatting"
-      className="sticky top-14 z-30 flex flex-wrap items-center gap-0.5 border-b border-border bg-surface/95 px-2 py-1.5 backdrop-blur-sm"
+      // Scrolls sideways rather than wrapping: at ~390px the full button set
+      // doesn't fit, and wrapping orphaned redo onto a second row that pushed
+      // the document down and made the sticky bar two rows tall. Horizontal
+      // overflow keeps it one row at every width (the pattern mobile editors
+      // use). Scrollbar hidden — it's chrome, not content.
+      className="sticky top-14 z-30 flex items-center gap-0.5 overflow-x-auto border-b border-border bg-surface/95 px-2 py-1.5 backdrop-blur-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       <ToolbarButton
         label="Bold"

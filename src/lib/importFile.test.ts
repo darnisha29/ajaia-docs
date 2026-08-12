@@ -1,9 +1,12 @@
+import { readFileSync } from "node:fs"
+import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 
 import {
   convertFileToHtml,
   deriveTitleFromFileName,
   detectImportKind,
+  docxToHtml,
   markdownToHtml,
   textToHtml,
 } from "@/lib/importFile"
@@ -77,6 +80,48 @@ describe("deriveTitleFromFileName", () => {
 
   it("falls back to a default when nothing is left", () => {
     expect(deriveTitleFromFileName(".md")).toBe("Untitled document")
+  })
+})
+
+// A genuine Word-format file (real OOXML, not a hand-rolled approximation),
+// so this exercises the same path a user's upload takes. Regenerate with
+// scripts/make-docx-fixture.py if it ever needs new content.
+const docxFixture = (): Buffer =>
+  readFileSync(
+    fileURLToPath(new URL("./__fixtures__/sample.docx", import.meta.url)),
+  )
+
+describe("docxToHtml", () => {
+  it("converts headings, emphasis, and both list types", async () => {
+    const html = await docxToHtml(docxFixture())
+
+    expect(html).toContain("<h1>Q3 Product Brief</h1>")
+    expect(html).toContain("<h2>Background</h2>")
+    expect(html).toContain("<h3>Goals</h3>")
+    expect(html).toContain("<strong>bold text</strong>")
+    expect(html).toContain("<em>italic text</em>")
+    expect(html).toContain("<li>Ship the editor</li>")
+    expect(html).toContain("<ol>")
+    expect(html).toContain("<li>First step</li>")
+  })
+
+  it("preserves underline", async () => {
+    // Regression guard: mammoth drops underline unless explicitly style-mapped,
+    // which silently contradicts the editor's underline button.
+    const html = await docxToHtml(docxFixture())
+
+    expect(html).toContain("<u>underlined text</u>")
+  })
+
+  it("maps Word quote styles to blockquotes", async () => {
+    expect(await docxToHtml(docxFixture())).toContain("<blockquote>")
+  })
+
+  it("escapes markup embedded in the document text", async () => {
+    const html = await docxToHtml(docxFixture())
+
+    expect(html).not.toContain("<script")
+    expect(html).toContain("&lt;script&gt;")
   })
 })
 

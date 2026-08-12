@@ -6,6 +6,34 @@
 
 ---
 
+## For reviewers — start here
+
+**No signup required.** Open the live URL and click any of the three seeded accounts.
+
+| Name         | Email              |
+| ------------ | ------------------ |
+| Ada Lovelace | `ada@ajaia.test`   |
+| Grace Hopper | `grace@ajaia.test` |
+| Alan Turing  | `alan@ajaia.test`  |
+
+There are no passwords — sign-in is a one-click user picker, so switching identities to test sharing
+takes a few seconds. These are the only accounts that exist; signing in does not create new users.
+
+**To see the sharing model in ~60 seconds:**
+
+1. Sign in as **Ada** → create a document → type and format something.
+2. **Share** → `grace@ajaia.test` → **Can edit** → Share.
+3. Sign out (top right) → sign in as **Grace**.
+4. The document is under **Shared with me** and is editable. Ada's other documents are invisible.
+5. Switch Grace to **Can view** → the toolbar disables and a "View only" badge appears.
+
+**Import formats: `.txt`, `.md`, `.docx` only** (≤5MB). Attachments accept any type (≤10MB).
+
+Running locally instead? See [`README.md`](README.md) — it needs a Supabase project and three env
+variables.
+
+---
+
 ## Documents
 
 | File                          | What it is                                                              |
@@ -32,7 +60,7 @@
 
 ## Tests
 
-**`yarn test`** — 36 unit tests, 4 files, all passing.
+**`yarn test`** — 40 unit tests, 4 files, all passing.
 
 | File                           | Covers                                                        |
 | ------------------------------ | ------------------------------------------------------------- |
@@ -68,16 +96,50 @@ attachment signed-URL download, and every authorization boundary. All passing.
 | Setup and run instructions        | ✅     | `README.md`                                                                                  |
 | Working deployment                | ⬜     | _paste URL above once deployed_                                                              |
 | Validation and error handling     | ✅     | Zod at every boundary; typed JSON errors; toasts; error boundary                             |
-| At least one meaningful test      | ✅     | 36 tests — see above                                                                         |
+| At least one meaningful test      | ✅     | 40 tests — see above                                                                         |
 | Architecture note                 | ✅     | `ARCHITECTURE.md`                                                                            |
 | AI workflow note                  | ✅     | `AI_WORKFLOW.md`                                                                             |
 
-## Known limitations
+## What's working, what's incomplete, what's next
 
-Stated in full in `ARCHITECTURE.md`. The headline ones:
+### Working end to end
 
-- **No real-time co-editing.** Concurrent edits are last-write-wins.
-- **Auth is seeded accounts + a signed cookie**, not real authentication. Authorization, however, is
-  real and tested.
-- **No version history** — saves overwrite.
-- **`.docx` import** preserves semantic formatting, not images or tables.
+Everything in the table above, verified two ways: 40 unit tests, plus 46 end-to-end checks
+(`yarn smoke`) that drive the real HTTP API as three different users against the live database.
+Specifically confirmed working: create → format → autosave → reopen with formatting intact; rename;
+`.md`/`.txt`/`.docx` import with headings, bold, lists, and links preserved; attachment upload and
+signed-URL download; sharing with role changes; and every authorization boundary (a viewer can't
+write, an editor can't re-share or delete, a non-recipient gets a 404 rather than a 403).
+
+### Incomplete / not built
+
+| Gap                                 | Impact                                                                                                                                                     |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Real-time co-editing**            | Two people in the same document at once will last-write-wins each other. No presence UI.                                                                   |
+| **Real authentication**             | Seeded accounts, no passwords. The cookie _is_ cryptographically signed, so it can't be forged — the fake part is only that there's no credential check.   |
+| **Version history**                 | Saves overwrite; no undo across sessions.                                                                                                                  |
+| **`.docx` fidelity**                | Verified with a real Word file: headings, bold/italic/underline, both list types, blockquotes and links survive. Images, tables and complex layout do not. |
+| **Link/unlink control**             | Links survive import and paste but can't be created or removed by hand. Autolink is off for that reason — an unwanted link would be irreversible.          |
+| **Comments / suggestions / export** | Not started — deliberate scope cuts.                                                                                                                       |
+| **Component tests**                 | Tests target logic where silent failure is expensive, not rendering.                                                                                       |
+
+### What I'd build next, with another 2–4 hours
+
+In priority order — this is where I'd actually spend it:
+
+1. **Real-time co-editing (~2h).** The biggest gap between this and the product it's imitating.
+   Tiptap is ProseMirror-based specifically so this is additive: add Yjs + a websocket provider and
+   a presence indicator, rather than rewriting the editor. This is why I chose Tiptap over a
+   `contentEditable` surface even though the latter would have been faster today.
+2. **Conflict safety as a stopgap (~30m).** If real-time didn't land, I'd at least add optimistic
+   concurrency — send the last-known `updated_at` with each PATCH and reject stale writes with a 409
+   plus a "someone else edited this" prompt. Silent data loss is the worst failure mode here.
+3. **Document-level empty and loading states (~30m).** The list has an empty state; the editor
+   doesn't have a skeleton, and slow saves have no optimistic feedback beyond the status text.
+4. **Share-by-link with an expiring token (~1h).** The current model requires the recipient to
+   already exist, which is the main thing that makes it feel like a demo rather than a product.
+
+I would _not_ spend it on version history or export — they demo well but don't change whether the
+core loop is trustworthy.
+
+Full reasoning for every cut is in [`ARCHITECTURE.md`](ARCHITECTURE.md).

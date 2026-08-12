@@ -63,8 +63,28 @@ export const markdownToHtml = async (markdown: string): Promise<string> => {
   return sanitizeDocumentHtml(html)
 }
 
+// Mammoth's defaults drop two things this editor explicitly supports, so both
+// are mapped back explicitly. Verified against a real Word-generated .docx —
+// without these, underlined text imports as plain text and a Word "Quote"
+// paragraph imports as an ordinary one.
+//
+// Mammoth ignores underline by default on the reasoning that Word documents
+// often underline things that aren't emphasis (notably link text). That's a
+// sensible default in general and the wrong one here: underline is a first-class
+// button in our toolbar and an allowed tag in our sanitizer, so an imported
+// document should round-trip it like any other mark.
+const DOCX_STYLE_MAP = [
+  "u => u",
+  "p[style-name='Quote'] => blockquote:fresh",
+  "p[style-name='Intense Quote'] => blockquote:fresh",
+]
+
 export const docxToHtml = async (buffer: Buffer): Promise<string> => {
-  const { value } = await mammoth.convertToHtml({ buffer })
+  const { value } = await mammoth.convertToHtml(
+    { buffer },
+    { styleMap: DOCX_STYLE_MAP },
+  )
+
   return sanitizeDocumentHtml(value)
 }
 

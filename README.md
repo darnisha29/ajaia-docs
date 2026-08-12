@@ -119,7 +119,7 @@ not create new users.
 
 ### Unit — `yarn test`
 
-36 tests covering the parts most likely to be wrong in a way that matters:
+40 tests covering the parts most likely to be wrong in a way that matters:
 
 - **`permissions.test.ts`** — the owner/editor/viewer rules, including that an editor cannot re-share
   or delete, and that ownership always wins over a stale share row.
@@ -127,7 +127,10 @@ not create new users.
 - **`sanitize.test.ts`** — scripts, event handlers, `javascript:` URLs, and iframes are stripped from
   document HTML.
 - **`importFile.test.ts`** — extension detection, text/markdown conversion, and that a `.txt` file
-  containing `<script>` imports as visible text rather than markup.
+  containing `<script>` imports as visible text rather than markup. Includes `.docx` conversion
+  against a **real Word file** (`src/lib/__fixtures__/sample.docx`, regenerate with
+  `python3 scripts/make-docx-fixture.py`), asserting headings, bold/italic/underline, both list
+  types, and blockquotes all survive.
 
 ### End-to-end — `yarn smoke`
 
@@ -175,4 +178,5 @@ Code and Cursor.
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for what was prioritized and why, and
 [`AI_WORKFLOW.md`](AI_WORKFLOW.md) for the AI-native workflow note.
+
 # ajaia-docs

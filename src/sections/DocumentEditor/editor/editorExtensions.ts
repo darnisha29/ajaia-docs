@@ -19,7 +19,14 @@ export const editorExtensions = [
   Underline,
   Link.configure({
     openOnClick: false,
-    autolink: true,
+    // autolink OFF, deliberately. It links any token ending in something that
+    // looks like a TLD, so ordinary prose — "check.Live", "app.Dev", a filename
+    // like "notes.page" — silently becomes a hyperlink while you type. That
+    // would be a tolerable annoyance if it were reversible, but this build ships
+    // no link/unlink button, so there is no way for a user to undo it. Links
+    // still arrive via import and paste, which is where they actually come from.
+    autolink: false,
+    linkOnPaste: true,
     HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
   }),
   Placeholder.configure({

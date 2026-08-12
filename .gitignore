@@ -32,9 +32,18 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the template, which carries no secrets and is needed for setup.
+!.env.example
 
 # vercel
 .vercel
+
+# supabase (CLI-local link cache — not for commit)
+supabase/.temp/
+
+# smoke-test scratch (cookie jars + generated fixtures)
+scripts/*.jar
+scripts/sample.*
 
 # typescript
 *.tsbuildinfo

@@ -1,0 +1,47 @@
+---
+description: Supabase migration workflow — forward-only SQL migrations, never edit an applied one
+alwaysApply: true
+---
+
+# Database migrations (strict)
+
+This project uses **Supabase Postgres** accessed through the **Supabase JS client**
+(`@supabase/supabase-js`). There is no ORM. The server-only admin client (service-role key, bypasses
+RLS) lives in `src/lib/supabase.ts`; authorization is handled in app code via `src/lib/permissions.ts`,
+not Supabase RLS. Hand-maintained row/insert/update types live in `src/lib/database.types.ts`.
+
+## Required
+
+- **Every schema change ships as a forward-only SQL migration** under `supabase/migrations/`, named
+  `<UTC timestamp>_<description>.sql` (e.g. `20260812120300_add_document_archived.sql`). The 14-digit
+  timestamp prefix is not cosmetic — `supabase db push` ignores files that don't match it, so a
+  migration named `0004_foo.sql` silently never runs. `supabase migration new <name>` generates the
+  prefix for you.
+- Apply migrations via the Supabase Dashboard → SQL Editor, or the Supabase CLI (`supabase db push`).
+- **Never edit, rename, or delete a migration that has already been applied.** Applied migrations are
+  immutable history. To change something, add a **new** migration that moves the state forward.
+- Keep `src/lib/database.types.ts` in sync with the schema (or regenerate it with
+  `supabase gen types typescript` if you adopt the Supabase CLI).
+- Enable Row-Level Security on new tables. Server access uses the service-role key (bypasses RLS), so
+  a table with RLS on and no policies is safe by default.
+
+## Avoid
+
+- ❌ Hand-editing SQL in an already-applied `supabase/migrations/<file>.sql`.
+- ❌ Deleting a migration to "redo" it after it has been applied to any shared database.
+- ❌ Importing `src/lib/supabase.ts` (service-role admin client) into client components — it must stay
+  server-side.
+
+## Prefer
+
+```sql
+-- Made a schema change? Add the next migration:
+-- supabase/migrations/20260812120300_add_document_archived.sql
+alter table public.documents add column archived_at timestamptz;
+
+-- Need to undo/adjust an applied change? New migration, forward:
+-- supabase/migrations/20260812120400_drop_document_archived.sql
+alter table public.documents drop column archived_at;
+```
+
+When in doubt: add a new migration, never touch an old one.

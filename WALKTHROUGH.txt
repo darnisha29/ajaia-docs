@@ -1,0 +1,26 @@
+Walkthrough video (3–5 min)
+===========================
+
+URL: <paste the unlisted Loom or YouTube link here>
+
+Suggested run of show, mapped to what the brief asks for:
+
+  0:00  Sign in as Ada (seeded accounts, no passwords — and why: scope decision)
+  0:20  Create a document, type, apply bold / italic / underline / H1 / bullets
+        Point out the "Saving… → Saved" indicator (debounced autosave)
+  1:00  Rename the document inline in the header
+  1:15  Back to the list — preview text, updated timestamp
+  1:30  Import a .md or .docx file → becomes a new editable document,
+        formatting preserved. Note the stated supported types.
+  2:00  Attach a file to a document (private bucket, signed-URL download)
+  2:20  Share with grace@ajaia.test as "Can edit"
+  2:35  Sign out → sign in as Grace → document appears under "Shared with me",
+        and is editable
+  3:00  Switch the share to "Can view" → show the read-only mode
+        (disabled toolbar, "View only" badge)
+  3:20  What I deprioritized and why: real-time co-editing, real auth,
+        version history (see ARCHITECTURE.md)
+  4:00  Key implementation decisions: one tested permission function,
+        server-side sanitization, forward-only migrations
+  4:30  How AI supported the work + the four things I rejected
+        (see AI_WORKFLOW.md)

@@ -1,0 +1,97 @@
+---
+description: Folder structure and file-naming conventions for src/
+alwaysApply: true
+---
+
+# Folder structure (strict)
+
+Organize `src/` by responsibility. Always import via the `@/*` alias (maps to `src/*` in `tsconfig.json`) — never deep relative paths like `../../../lib/utils`.
+
+## src/ layout
+
+- `app/` — Next.js App Router routes, layouts, route handlers, and server actions only
+- `components/`
+  - `ui/` — generic, reusable primitives (shadcn-style), **kebab-case** files
+  - `common/` — shared, domain-aware components used across features
+  - `<feature>/` — components specific to one feature (e.g. `documents/`, `share/`)
+- `sections/` — full-page compositions, one **PascalCase** folder per page
+- `hooks/` — custom React hooks, one per file, `useX` naming
+- `lib/` — utilities, integrations, and cross-cutting shared types
+- `utils/` — small standalone helper functions
+- `providers/` — React context providers and app-level setup
+- `constants/` — app-wide constants
+- `data/` — static fixtures / seed data
+- `styles/` — global CSS
+
+## Page composition (routes → sections)
+
+Keep `app/` routes thin. A `page.tsx` should **only** render its top-level page component from
+`sections/` — no markup or logic of its own beyond data fetching and auth guards. Each page gets a
+**PascalCase** folder in `sections/` containing one main component (named after the folder) plus the
+section components it composes.
+
+```
+src/
+├── app/
+│   └── documents/page.tsx    # only: auth guard + render <DocumentsPage />
+└── sections/
+    └── DocumentsPage/
+        ├── DocumentsPage.tsx # main page component, composes the sections below
+        ├── OwnedSection.tsx
+        ├── SharedSection.tsx
+        └── ...
+```
+
+```tsx
+// src/app/documents/page.tsx
+import DocumentsPage from "@/sections/DocumentsPage/DocumentsPage"
+
+const Page = () => <DocumentsPage />
+
+export default Page
+```
+
+- The main page component (`DocumentsPage.tsx`) is the single component referenced by `page.tsx`.
+- Section components reused across pages belong in `components/common/`; section components specific
+  to one page stay inside that page's `sections/<PageName>/` folder.
+
+## Naming
+
+| Kind                  | Convention              | Example                     |
+| --------------------- | ----------------------- | --------------------------- |
+| React components      | PascalCase `.tsx`       | `DocumentCard.tsx`          |
+| UI primitives (`ui/`) | kebab-case              | `button.tsx`, `dialog.tsx`  |
+| Hooks                 | `use` + PascalCase      | `useAutosave.ts`            |
+| Utilities / helpers   | camelCase               | `formatRelativeTime.ts`     |
+| Props types           | `*Props` suffix         | `type DocumentCardProps = { ... }` |
+
+## One component per file (strict)
+
+Every `.tsx` file must contain **exactly one** React component. Never declare two or more components
+in the same file.
+
+- If a component is built from sub-components (cards, rows, list items, toolbars, dialogs, etc.),
+  extract **each** sub-component into its own `.tsx` file and import it.
+- Group a section's sub-components in a subfolder beside it, e.g.
+  `sections/DocumentEditor/editor/EditorToolbar.tsx`.
+- Non-component code is exempt and should live in non-`.tsx` files (or co-located): types, constants,
+  static data, custom hooks, helper/utility functions, and `cva`/variant definitions.
+- The only component in the file should be the one the file is named after.
+
+```
+// ❌ Bad — DocumentEditor.tsx defines EditorToolbar, ToolbarButton, ShareDialog, … in one file
+// ✅ Good
+sections/DocumentEditor/
+├── DocumentEditor.tsx        # one component: <DocumentEditor /> (composes the pieces)
+└── editor/
+    ├── EditorToolbar.tsx     # one component
+    ├── ToolbarButton.tsx     # one component
+    └── editorExtensions.ts   # non-component: Tiptap extension config
+```
+
+## Rules
+
+- **One component per file** (see above) — this is non-negotiable.
+- **Named exports** for reusable components/utilities; **default export** only for page-level routes and `sections/` compositions.
+- Co-locate component-specific types inline near the component; put cross-cutting/shared types in `lib/`.
+- Group new code into the directory that matches its responsibility — do not pile feature logic into `app/`.

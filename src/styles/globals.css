@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────
+   Ajaia Docs semantic tokens
+   App code references the mapped Tailwind utilities (bg-surface,
+   text-muted-foreground, border-border, …) rather than raw hexes.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --radius: 0.625rem;
+
+  --background: #f6f7f9;
+  --foreground: #17191c;
+
+  --surface: #ffffff;
+  --surface-foreground: #17191c;
+
+  --primary: #1a56db;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e8effc;
+
+  --muted: #f1f3f5;
+  --muted-foreground: #646b76;
+
+  --border: #e3e6ea;
+  --ring: #1a56db;
+
+  --destructive: #d92d20;
+  --destructive-foreground: #ffffff;
+  --destructive-soft: #fdeceb;
+
+  --success: #067647;
+  --success-soft: #e7f6ee;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --radius-base: var(--radius);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Document content
+   Tailwind Preflight resets headings and lists to unstyled, which is
+   right for UI chrome but wrong inside a rich-text document — h1 and a
+   bulleted list must look like themselves. These rules re-dress exactly
+   the tags the editor can emit (see @/lib/sanitize) and are shared by the
+   editor surface and any read-only render, so what you type is what you
+   see when it's read back.
+   ───────────────────────────────────────────────────────────── */
+.document-content {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--foreground);
+}
+
+.document-content:focus {
+  outline: none;
+}
+
+.document-content > * + * {
+  margin-top: 0.85em;
+}
+
+.document-content h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.document-content h2 {
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+}
+
+.document-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.document-content ul,
+.document-content ol {
+  padding-left: 1.5rem;
+}
+
+.document-content ul {
+  list-style: disc;
+}
+
+.document-content ol {
+  list-style: decimal;
+}
+
+.document-content li::marker {
+  color: var(--muted-foreground);
+}
+
+.document-content li > ul,
+.document-content li > ol {
+  margin-top: 0.25em;
+}
+
+.document-content blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1rem;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.document-content pre {
+  background: var(--muted);
+  border-radius: var(--radius);
+  padding: 0.875rem 1rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+}
+
+.document-content code {
+  background: var(--muted);
+  border-radius: 0.25rem;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+
+.document-content pre code {
+  background: none;
+  padding: 0;
+}
+
+.document-content a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.document-content hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+/* Tiptap renders an empty doc as a single empty <p>, which collapses to a
+   zero-height line with no cue that the document is editable. */
+.document-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--muted-foreground);
+}
